@@ -110,6 +110,28 @@ class Application(ApplicationPartDelete, ApplicationPartHead,
 
     def __call__(self, environ: types.WSGIEnviron, start_response:
                  types.WSGIStartResponse) -> Iterable[bytes]:
+        method = environ["REQUEST_METHOD"]
+        origin = environ.get("HTTP_ORIGIN")
+
+        cors = origin
+        preflight = cors and method == "OPTIONS"
+
+        # Access-Control-Allow-Headers = *
+        headers = [("Content-Type", "text/plain")]
+        if cors:
+            headers.extend([
+                ("Access-Control-Allow-Origin", origin),
+                ("Access-Control-Allow-Credentials", "true")
+            ])
+            if preflight:
+                headers.extend([
+                    ("Access-Control-Allow-Methods", "*"),
+                    ("Access-Control-Allow-Headers", "*")
+                ])
+
+        if method == "OPTIONS":
+            start_response("204 No Content", headers)
+            return []
         with log.register_stream(environ["wsgi.errors"]):
             try:
                 status_text, headers, answers = self._handle_request(environ)
