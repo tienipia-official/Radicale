@@ -121,7 +121,8 @@ class Application(ApplicationPartDelete, ApplicationPartHead,
         if cors:
             headers.extend([
                 ("Access-Control-Allow-Origin", origin),
-                ("Access-Control-Allow-Credentials", "true")
+                ("Access-Control-Allow-Credentials", "true"),
+                ("DAV", httputils.DAV_HEADERS)
             ])
             if preflight:
                 headers.extend([
