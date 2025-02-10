@@ -110,6 +110,28 @@ class Application(ApplicationPartDelete, ApplicationPartHead,
 
     def __call__(self, environ: types.WSGIEnviron, start_response:
                  types.WSGIStartResponse) -> Iterable[bytes]:
+        method = environ["REQUEST_METHOD"]
+        origin = environ.get("HTTP_ORIGIN")
+
+        if method == "OPTIONS":
+            # Access-Control-Allow-Headers = *
+            headers = [("Content-Type", "text/plain")]
+            headers.extend(
+                [
+                    ("Access-Control-Allow-Credentials", "true"),
+                    ("DAV", httputils.DAV_HEADERS),
+                ]
+            )
+            if origin:
+                headers.extend(
+                    [
+                        ("Access-Control-Allow-Origin", origin),
+                        ("Access-Control-Allow-Methods", "*"),
+                        ("Access-Control-Allow-Headers", "*"),
+                    ]
+                )
+            start_response("204 No Content", headers)
+            return []
         with log.register_stream(environ["wsgi.errors"]):
             try:
                 status_text, headers, answers = self._handle_request(environ)
